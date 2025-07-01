@@ -10,10 +10,10 @@ export interface Post {
   title: string;
   content?: string;
   published: boolean;
-  authorId: number;
-  author: User;
-  createdAt: string;
-  updatedAt: string;
+  author_id: string;
+  author?: User;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AuthResponse {
@@ -25,10 +25,12 @@ export interface CreatePostData {
   title: string;
   content?: string;
   published?: boolean;
+  author_id?: string;
 }
 
 export interface UpdatePostData {
   title?: string;
   content?: string;
   published?: boolean;
+  author_id?: string;
 }

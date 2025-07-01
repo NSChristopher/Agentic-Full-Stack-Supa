@@ -1,12 +1,29 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from '@/types';
-import api from '@/lib/api';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+
+// Redefine User type for AuthContext to match Supabase (id as string)
+type AuthUser = {
+  id: string;
+  email: string;
+  username: string;
+  createdAt?: string;
+};
+import { supabase } from "@/lib/api";
+import { toast } from "sonner";
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    username: string,
+    password: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -16,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -26,44 +43,91 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await api.get('/auth/me');
-      setUser(response.data.user);
-    } catch (error) {
-      // User not authenticated
-      setUser(null);
-    } finally {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || "",
+          username: session.user.user_metadata?.username || "",
+          createdAt: session.user.created_at,
+        });
+      } else {
+        setUser(null);
+      }
       setLoading(false);
-    }
-  };
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || "",
+            username: session.user.user_metadata?.username || "",
+            createdAt: session.user.created_at,
+          });
+        } else {
+          setUser(null);
+        }
+      }
+    );
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      setUser(response.data.user);
-      toast.success('Login successful!');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email || "",
+          username: data.user.user_metadata?.username || "",
+          createdAt: data.user.created_at,
+        });
+      }
+      toast.success("Login successful!");
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed';
+      const message = error.message || "Login failed";
       toast.error(message);
       throw error;
     }
   };
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = async (
+    email: string,
+    username: string,
+    password: string
+  ) => {
     try {
-      const response = await api.post('/auth/register', { email, username, password });
-      setUser(response.data.user);
-      toast.success('Registration successful!');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } },
+      });
+      if (error) throw error;
+      if (data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email || "",
+          username: data.user.user_metadata?.username || "",
+          createdAt: data.user.created_at,
+        });
+      }
+      toast.success(
+        "Registration successful! Please check your email to confirm your account."
+      );
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Registration failed';
+      const message = error.message || "Registration failed";
       toast.error(message);
       throw error;
     }
@@ -71,11 +135,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setUser(null);
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
     } catch (error: any) {
-      toast.error('Logout failed');
+      toast.error("Logout failed");
       throw error;
     }
   };

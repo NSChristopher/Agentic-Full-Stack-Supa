@@ -18,6 +18,7 @@ const Dashboard = () => {
     title: '',
     content: '',
     published: false,
+    author_id: '',
   });
   const navigate = useNavigate();
 
@@ -42,7 +43,7 @@ const Dashboard = () => {
         await createPost(formData);
         setShowCreateForm(false);
       }
-      setFormData({ title: '', content: '', published: false });
+      setFormData({ title: '', content: '', published: false, author_id: '' });
     } catch (error) {
       // Error handled in hooks
     }
@@ -54,6 +55,7 @@ const Dashboard = () => {
       title: post.title,
       content: post.content || '',
       published: post.published,
+      author_id: post.author_id,
     });
     setShowCreateForm(true);
   };
@@ -61,10 +63,10 @@ const Dashboard = () => {
   const handleCancelEdit = () => {
     setEditingPost(null);
     setShowCreateForm(false);
-    setFormData({ title: '', content: '', published: false });
+    setFormData({ title: '', content: '', published: false, author_id: '' });
   };
 
-  const userPosts = posts.filter(post => post.authorId === user?.id);
+  const userPosts = posts.filter(post => post.author_id === user?.id);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -176,7 +178,7 @@ const Dashboard = () => {
                         <CardTitle className="text-lg">{post.title}</CardTitle>
                         <CardDescription>
                           {post.published ? 'Published' : 'Draft'} • Created on{' '}
-                          {new Date(post.createdAt).toLocaleDateString()}
+                          {new Date(post.created_at).toLocaleDateString()}
                         </CardDescription>
                       </div>
                       <div className="flex space-x-2">
@@ -215,7 +217,7 @@ const Dashboard = () => {
                     <div>
                       <CardTitle className="text-lg">{post.title}</CardTitle>
                       <CardDescription>
-                        By {post.author.username} • {new Date(post.createdAt).toLocaleDateString()}
+                        By {post.author?.username ?? "Unknown"} • {new Date(post.created_at).toLocaleDateString()}
                       </CardDescription>
                     </div>
                   </div>
