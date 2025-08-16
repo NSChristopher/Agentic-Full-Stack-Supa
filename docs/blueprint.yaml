@@ -4,15 +4,45 @@ project:
   mission: to create resumes for job seekers
   audience: job seekers
   core_features: ""
-user_stories: []
+user_stories:
+  - id: US1
+    as: job-seeker
+    want: to create a professional resume
+    so_that: I can get a job
+    acceptance_criteria:
+      - description: I need to be able to break the resume into sections like Work Experience, Education, Skills, Certifications.
+        completed: false
+    component_ids: []
+    column_id: COL1
+  - id: US2
+    as: job-seeker
+    want: to be able to download the resume
+    so_that: I can print it out and take it to an employer
+    acceptance_criteria:
+      - description: ""
+        completed: false
+    component_ids: []
+    column_id: COL1
+  - id: US3
+    as: manger
+    want: I want to se how many resume have been created
+    so_that: I can track the success of my app
+    acceptance_criteria:
+      - description: ""
+        completed: false
+    component_ids: []
+    column_id: COL2
 architecture:
   components: []
   edges: []
 sprints: []
 columns:
   - id: COL1
-    title: Stories
+    title: Job Seekers
     order: 0
+  - id: COL2
+    title: Admin
+    order: 1
 prompt_style:
   tone: kid-friendly
   detail_level: step-by-step
