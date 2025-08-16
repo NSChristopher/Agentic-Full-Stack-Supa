@@ -1,8 +1,8 @@
 version: "0.3"
 project:
-  name: Untitled App
-  mission: Draft mission (edit in Overview).
-  audience: Who is this for?
+  name: EZCV
+  mission: to create resumes for job seekers
+  audience: job seekers
   core_features: ""
 user_stories: []
 architecture:
